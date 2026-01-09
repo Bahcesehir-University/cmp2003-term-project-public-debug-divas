@@ -11,25 +11,17 @@ struct ZoneCount {
 
 struct SlotCount {
     std::string zone;
-    int hour;            
+    int hour;
     long long count;
 };
 
 class TripAnalyzer {
 public:
-   
-    void ingestFile(const std::string& csvPath);
-
-    
+    void ingest(std::istream& in);
     std::vector<ZoneCount> topZones(int k = 10) const;
-
-   
     std::vector<SlotCount> topBusySlots(int k = 10) const;
 
 private:
-    
     std::unordered_map<std::string, long long> m_zoneCounts;
-
-    
     std::unordered_map<std::string, std::vector<long long>> m_hourlyCounts;
 };
