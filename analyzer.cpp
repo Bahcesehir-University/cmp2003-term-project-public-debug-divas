@@ -36,13 +36,16 @@ static bool parseRow(const std::string& line, std::string& zone, int& hour) {
     return true;
 }
 
-void TripAnalyzer::ingest(std::istream& in) {
+void TripAnalyzer::ingestFile(const std::string& csvPath) {
+    std::ifstream file(csvPath);
+    if (!file.is_open()) return;
+
     std::string line, zone;
     int hour = 0;
 
-    if (!std::getline(in, line)) return; // header
+    if (!std::getline(file, line)) return;
 
-    while (std::getline(in, line)) {
+    while (std::getline(file, line)) {
         if (parseRow(line, zone, hour)) {
             m_zoneCounts[zone]++;
             if (m_hourlyCounts[zone].empty())
@@ -51,6 +54,7 @@ void TripAnalyzer::ingest(std::istream& in) {
         }
     }
 }
+
 
 std::vector<ZoneCount> TripAnalyzer::topZones(int k) const {
     std::vector<ZoneCount> res;
@@ -85,3 +89,4 @@ std::vector<SlotCount> TripAnalyzer::topBusySlots(int k) const {
     if ((int)res.size() > k) res.resize(k);
     return res;
 }
+
