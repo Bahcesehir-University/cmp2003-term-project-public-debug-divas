@@ -4,33 +4,31 @@
 #include <algorithm>
 #include <cctype>
 
-using namespace std;
 
-
-static bool parseRow(const string& line, string& zone, int& hour) {
+static bool parseRow(const std::string& line, std::string& zone, int& hour) {
     if (line.empty()) return false;
 
     int commaCount = 0;
     for (char c : line) if (c == ',') commaCount++;
     if (commaCount < 5) return false;
 
-    size_t p1 = line.find(',');
-    size_t p2 = line.find(',', p1 + 1);
-    if (p1 == string::npos || p2 == string::npos) return false;
+    std::size_t p1 = line.find(',');
+    std::size_t p2 = line.find(',', p1 + 1);
+    if (p1 == std::string::npos || p2 == std::string::npos) return false;
 
     zone = line.substr(p1 + 1, p2 - (p1 + 1));
     if (zone == "PickupZoneID" || zone.empty()) return false;
 
-    size_t p3 = line.find(',', p2 + 1);
-    size_t p4 = line.find(',', p3 + 1);
-    if (p3 == string::npos || p4 == string::npos) return false;
+    std::size_t p3 = line.find(',', p2 + 1);
+    std::size_t p4 = line.find(',', p3 + 1);
+    if (p3 == std::string::npos || p4 == std::string::npos) return false;
 
-    string dateStr = line.substr(p3 + 1, p4 - (p3 + 1));
+    std::string dateStr = line.substr(p3 + 1, p4 - (p3 + 1));
     if (dateStr.size() < 13 || dateStr[10] != ' ') return false;
 
     try {
-        string hourStr = dateStr.substr(11, 2);
-        hour = stoi(hourStr);
+        std::string hourStr = dateStr.substr(11, 2);
+        hour = std::stoi(hourStr);
         if (hour < 0 || hour > 23) return false;
     } catch (...) {
         return false;
@@ -38,15 +36,15 @@ static bool parseRow(const string& line, string& zone, int& hour) {
     return true;
 }
 
-void TripAnalyzer::ingestFile(const string& filename) {
-    ifstream file(filename);
+void TripAnalyzer::ingestFile(const std::string& filename) {
+    std::ifstream file(filename);
     if (!file.is_open()) return;
 
-    string line, zone;
+    std::string line, zone;
     int hour = 0;
-    if (!getline(file, line)) return; 
+    if (!std::getline(file, line)) return; 
 
-    while (getline(file, line)) {
+    while (std::getline(file, line)) {
         if (parseRow(line, zone, hour)) {
             m_zoneCounts[zone]++;
             if (m_hourlyCounts[zone].empty())
@@ -56,12 +54,12 @@ void TripAnalyzer::ingestFile(const string& filename) {
     }
 }
 
-vector<ZoneCount> TripAnalyzer::topZones(int k) const {
-    vector<ZoneCount> results;
+std::vector<ZoneCount> TripAnalyzer::topZones(int k) const {
+    std::vector<ZoneCount> results;
     for (const auto& p : m_zoneCounts)
         results.push_back({p.first, p.second});
 
-    sort(results.begin(), results.end(), [](const ZoneCount& a, const ZoneCount& b) {
+    std::sort(results.begin(), results.end(), [](const ZoneCount& a, const ZoneCount& b) {
         if (a.count != b.count) return a.count > b.count;
         return a.zone < b.zone;
     });
@@ -70,8 +68,8 @@ vector<ZoneCount> TripAnalyzer::topZones(int k) const {
     return results;
 }
 
-vector<SlotCount> TripAnalyzer::topBusySlots(int k) const {
-    vector<SlotCount> results;
+std::vector<SlotCount> TripAnalyzer::topBusySlots(int k) const {
+    std::vector<SlotCount> results;
     for (const auto& p : m_hourlyCounts) {
         for (int h = 0; h < 24; h++) {
             if (p.second[h] > 0)
@@ -79,7 +77,7 @@ vector<SlotCount> TripAnalyzer::topBusySlots(int k) const {
         }
     }
 
-    sort(results.begin(), results.end(), [](const SlotCount& a, const SlotCount& b) {
+    std::sort(results.begin(), results.end(), [](const SlotCount& a, const SlotCount& b) {
         if (a.count != b.count) return a.count > b.count;
         if (a.zone != b.zone) return a.zone < b.zone;
         return a.hour < b.hour;
